@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Media Downloader Pro</title>
+    <!-- Font Awesome 5 CDN -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" />
+    <link rel="stylesheet" href="popup.css" />
+  </head>
+  <body>
+    <div class="container">
+      <!-- Header -->
+      <header class="header">
+        <div class="header-content">
+          <h1 class="title"><i class="fas fa-download"></i> Media Downloader</h1>
+          <p class="subtitle">Versi 1.0.0</p>
+        </div>
+      </header>
+
+      <!-- Stats -->
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-icon"><i class="fas fa-image"></i></div>
+          <div class="stat-info">
+            <div class="stat-label">Gambar</div>
+            <div class="stat-count" id="imageCount">0</div>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon"><i class="fas fa-video"></i></div>
+          <div class="stat-info">
+            <div class="stat-label">Video</div>
+            <div class="stat-count" id="videoCount">0</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tabs -->
+      <div class="tabs">
+        <button class="tab-btn active" data-tab="images">Gambar</button>
+        <button class="tab-btn" data-tab="videos">Video</button>
+      </div>
+
+      <!-- Loading State -->
+      <div id="loadingState" class="loading-state hidden">
+        <div class="spinner"></div>
+        <p>Scanning halaman...</p>
+      </div>
+
+      <!-- Images Tab -->
+      <div id="imagesTab" class="tab-content active">
+        <div id="imagesList" class="media-list">
+          <!-- Images akan di-render di sini -->
+        </div>
+      </div>
+
+      <!-- Videos Tab -->
+      <div id="videosTab" class="tab-content">
+        <div id="videosList" class="media-list">
+          <!-- Videos akan di-render di sini -->
+        </div>
+      </div>
+
+      <!-- Empty State -->
+      <div id="emptyState" class="empty-state hidden">
+        <div class="empty-icon"><i class="fas fa-search"></i></div>
+        <p class="empty-text">Tidak ada media ditemukan</p>
+        <button id="scanBtn" class="btn-primary">Scan Ulang</button>
+      </div>
+
+      <!-- Footer -->
+      <footer class="footer">
+        <button id="downloadAllBtn" class="btn-primary btn-block">
+          <i class="fas fa-download"></i> Download Semua
+        </button>
+        <button id="settingsBtn" class="btn-secondary btn-block"><i class="fas fa-cog"></i> Pengaturan</button>
+      </footer>
+    </div>
+
+    <!-- Notification -->
+    <div id="notification" class="notification"></div>
+
+    <!-- Download Progress Modal -->
+    <div id="progressModal" class="modal hidden">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2>Status Download</h2>
+          <button class="modal-close"><i class="fas fa-times"></i></button>
+        </div>
+        <div class="modal-body">
+          <div id="progressContainer"></div>
+        </div>
+      </div>
+    </div>
+
+    <script src="popup.js"></script>
+  </body>
+</html>

@@ -1,0 +1,48 @@
+{
+  "name": "RzkyNT's Extensions Theme",
+  "description": "Dark-first theme for RzkyNT's Extensions",
+  "author": "RzkyNT",
+  "version": "1.0.0",
+  "modes": {
+    "dark": {
+      "primary": "#25D366",
+      "primary-hover": "#2BE07B",
+      "background": "#04070D",
+      "surface": "#0B0F14",
+      "surface-alt": "#11161C",
+      "text": "#F2F4F6",
+      "muted": "#9aa4b2",
+      "border-color": "rgba(255,255,255,0.05)",
+      "badge-bg": "rgba(255,255,255,0.03)",
+      "shadow": "0 8px 30px rgba(0,0,0,0.5)",
+      "shadow-hover": "0 12px 40px rgba(0,0,0,0.6)",
+      "btn-danger-bg": "#E53935",
+      "linear-bg": "linear-gradient(90deg, #25d366, #04070D)"
+    },
+    "light": {
+      "primary": "#25D366",
+      "primary-hover": "#2BE07B",
+      "background": "#F2F4F6",
+      "surface": "#FFFFFF",
+      "surface-alt": "#E9ECEF",
+      "text": "#04070D",
+      "muted": "#5C677D",
+      "border-color": "rgba(0,0,0,0.08)",
+      "badge-bg": "rgba(0,0,0,0.03)",
+      "shadow": "0 8px 20px rgba(0,0,0,0.08)",
+      "shadow-hover": "0 10px 25px rgba(0,0,0,0.12)",
+      "btn-danger-bg": "#E53935",
+      "linear-bg": "linear-gradient(90deg, #25d366, #fff)"
+    }
+  },
+  "ui": {
+    "radius": "12px",
+    "container-max-width": "1100px",
+    "alert": "sweetalert",
+    "font-awesome": {
+      "version": "5.15.4",
+      "cdn": "https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4",
+      "use": "solid"
+    }
+  }
+}

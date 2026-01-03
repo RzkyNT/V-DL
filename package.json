@@ -1,0 +1,18 @@
+{
+  "name": "Media Downloader Pro",
+  "version": "1.0.0",
+  "description": "Download videos, images, dan media dari website dengan mudah",
+  "author": "RzkyNT",
+  "license": "MIT",
+  "scripts": {
+    "dev": "echo 'Development mode - Load unpacked in chrome://extensions'",
+    "test": "echo 'Run tests here'"
+  },
+  "keywords": [
+    "chrome-extension",
+    "downloader",
+    "media",
+    "video",
+    "image"
+  ]
+}
