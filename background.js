@@ -95,7 +95,7 @@ async function handleM3U8Download(request, sendResponse) {
       // Convert .m3u8 to .mp4
       sanitizedFilename = sanitizedFilename.replace(/\.m3u8$/i, '.mp4');
       
-      const fullFilename = `MediaDownloader/Videos/${sanitizedFilename}`;
+      const fullFilename = sanitizedFilename;
 
       console.log('[M3U8] Downloading as:', fullFilename);
 
@@ -204,8 +204,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
       .replace(/[<>:"/\\|?*]/g, '_')
       .substring(0, 200);
 
-    const folder = type === 'image' ? 'Images' : type === 'video' ? 'Videos' : 'Downloads';
-    const fullFilename = `MediaDownloader/${folder}/${sanitizedFilename}`;
+    const fullFilename = sanitizedFilename;
 
     chrome.downloads.download(
       {
@@ -239,8 +238,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 
     urls.forEach((url, index) => {
       const filename = filenames[index] || `media_${index}`;
-      const folder = type === 'image' ? 'Images' : 'Videos';
-      const fullFilename = `MediaDownloader/${folder}/${filename}`;
+      const fullFilename = filename;
 
       chrome.downloads.download(
         {
