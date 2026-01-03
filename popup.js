@@ -1,6 +1,9 @@
 /**
  * Popup Script - Media Downloader Pro
+ * with M3U8/HLS Streaming Support
+ * @type {HTMLElement}
  */
+/* eslint-disable no-undef */
 
 const imageCount = document.getElementById("imageCount");
 const videoCount = document.getElementById("videoCount");
@@ -114,8 +117,8 @@ function renderMedia() {
       <div class="media-actions">
         ${
           isM3U8
-            ? `<button class="btn-icon btn-m3u8" data-type="video" data-index="${index}" title="Convert M3U8">
-                 <i class="fas fa-film"></i>
+            ? `<button class="btn-icon btn-m3u8" data-type="video" data-index="${index}" title="Download M3U8">
+                 <i class="fas fa-download"></i>
                </button>`
             : `<button class="btn-icon" data-type="video" data-index="${index}" title="Download">
                  <i class="fas fa-download"></i>
@@ -238,8 +241,15 @@ function generateFilename(media, type) {
     .replace(/^_+|_+$/g, "")
     .substring(0, 100);
 
-  // Use extension from media data if available, otherwise infer
-  const ext = media.ext || (type === "image" ? "jpg" : "mp4");
+  // Determine extension
+  let ext = type === "image" ? "jpg" : "mp4";
+  
+  // For M3U8 videos, convert to mp4
+  if (media.ext === "m3u8") {
+    ext = "mp4";
+  } else if (media.ext) {
+    ext = media.ext;
+  }
 
   return `${name}.${ext}`;
 }
@@ -250,14 +260,13 @@ function generateFilename(media, type) {
 
 /**
  * Show dialog untuk M3U8 streaming file
- * @param {object} media - Media object
  */
 function showM3U8Dialog(media) {
   const dialogHtml = `
     <div class="m3u8-dialog-overlay" id="m3u8Dialog">
       <div class="m3u8-dialog-content">
         <div class="m3u8-dialog-header">
-          <h2><i class="fas fa-info-circle"></i> M3U8 Streaming File</h2>
+          <h2><i class="fas fa-download"></i> M3U8 HLS Stream Download</h2>
           <button class="m3u8-dialog-close" id="m3u8CloseBtn">
             <i class="fas fa-times"></i>
           </button>
@@ -265,10 +274,10 @@ function showM3U8Dialog(media) {
         
         <div class="m3u8-dialog-body">
           <p class="m3u8-warning">
-            <i class="fas fa-exclamation-triangle"></i>
-            <strong>Format HLS Streaming</strong><br>
-            File M3U8 adalah playlist streaming yang berisi banyak segment video. 
-            Format ini tidak bisa langsung di-download seperti video biasa.
+            <i class="fas fa-info-circle"></i>
+            <strong>HLS Streaming File</strong><br>
+            File M3U8 adalah playlist streaming yang berisi banyak video segment. 
+            Extension akan download semua segment dan menggabungkannya menjadi satu file video.
           </p>
 
           <div class="m3u8-info-box">
@@ -278,27 +287,40 @@ function showM3U8Dialog(media) {
             </div>
             <div class="info-item">
               <span class="info-label">URL:</span>
-              <span class="info-value url-value" id="m3u8Url">${media.src}</span>
+              <span class="info-value url-value">${media.src}</span>
             </div>
           </div>
 
-          <div class="m3u8-steps">
-            <h3>Cara Download:</h3>
-            <ol>
-              <li>Klik button <strong>"Open Converter"</strong> di bawah</li>
-              <li>URL playlist akan otomatis di-copy ke converter</li>
-              <li>Tunggu konversi selesai</li>
-              <li>Download file MP4 yang sudah jadi</li>
-            </ol>
+          <div id="m3u8ProgressContainer" class="m3u8-progress-container hidden">
+            <div class="m3u8-progress-header">
+              <h4><i class="fas fa-spinner"></i> Downloading Segments</h4>
+              <span class="m3u8-progress-text" id="m3u8ProgressText">0%</span>
+            </div>
+            <div class="m3u8-progress-bar">
+              <div class="m3u8-progress-fill" id="m3u8ProgressFill" style="width: 0%"></div>
+            </div>
+            <div class="m3u8-progress-details" id="m3u8ProgressDetails">
+              <span style="font-weight: 500; color: var(--primary);">0/0</span> segments
+            </div>
+            <div class="m3u8-progress-status" id="m3u8ProgressStatus" style="margin-top: 8px; font-size: 11px; color: var(--text-muted); text-align: center;">Initializing...</div>
+          </div>
+
+          <div class="m3u8-steps" id="m3u8StepsContainer">
+            <h3><i class="fas fa-check-circle"></i> Automatic Download</h3>
+            <p style="margin: 8px 0; font-size: 13px; color: var(--text-muted);">
+              Proses akan berlangsung secara otomatis:
+            </p>
+            <ul style="margin: 8px 0; padding-left: 20px; font-size: 12px; line-height: 1.8; color: var(--text-muted);">
+              <li>Download semua segment video dari server</li>
+              <li>Menggabungkan menjadi satu file TS</li>
+              <li>Simpan otomatis ke folder Videos</li>
+            </ul>
           </div>
         </div>
 
         <div class="m3u8-dialog-actions">
-          <button class="btn-primary" id="m3u8CopyBtn">
-            <i class="fas fa-copy"></i> Copy URL
-          </button>
-          <button class="btn-primary" id="m3u8OpenBtn">
-            <i class="fas fa-external-link-alt"></i> Open Converter
+          <button class="btn-primary" id="m3u8DownloadBtn">
+            <i class="fas fa-download"></i> Start Download
           </button>
           <button class="btn-secondary" id="m3u8CloseBtnAlt">
             <i class="fas fa-times"></i> Close
@@ -319,13 +341,11 @@ function showM3U8Dialog(media) {
   const dialog = document.getElementById("m3u8Dialog");
   const closeBtn = document.getElementById("m3u8CloseBtn");
   const closeBtnAlt = document.getElementById("m3u8CloseBtnAlt");
-  const copyBtn = document.getElementById("m3u8CopyBtn");
-  const openBtn = document.getElementById("m3u8OpenBtn");
+  const downloadBtn = document.getElementById("m3u8DownloadBtn");
 
   closeBtn.addEventListener("click", () => closeM3U8Dialog());
   closeBtnAlt.addEventListener("click", () => closeM3U8Dialog());
-  copyBtn.addEventListener("click", () => copyM3U8Url(media.src));
-  openBtn.addEventListener("click", () => openM3U8Converter(media.src));
+  downloadBtn.addEventListener("click", () => startM3U8Download(media));
 
   // Close dialog when clicking outside
   dialog.addEventListener("click", (e) => {
@@ -333,6 +353,99 @@ function showM3U8Dialog(media) {
       closeM3U8Dialog();
     }
   });
+}
+
+/**
+ * Start M3U8 download with progress tracking
+ */
+function startM3U8Download(media) {
+  const progressContainer = document.getElementById("m3u8ProgressContainer");
+  const stepsContainer = document.getElementById("m3u8StepsContainer");
+  const downloadBtn = document.getElementById("m3u8DownloadBtn");
+  const closeBtnAlt = document.getElementById("m3u8CloseBtnAlt");
+
+  console.log('[M3U8 UI] Starting M3U8 download for:', media.src);
+
+  // Show progress, hide steps
+  progressContainer.classList.remove("hidden");
+  stepsContainer.classList.add("hidden");
+  downloadBtn.disabled = true;
+  closeBtnAlt.disabled = true;
+
+  // Reset progress tracking
+  window.m3u8StartTime = null;
+
+  // Generate filename
+  const filename = generateFilename(media, "video");
+  console.log('[M3U8 UI] Generated filename:', filename);
+
+  // Listen for progress messages from background
+  const progressListener = (message) => {
+    if (message.action === "m3u8Progress") {
+      console.log('[M3U8 UI] Progress update:', message);
+      
+      const progressFill = document.getElementById("m3u8ProgressFill");
+      const progressText = document.getElementById("m3u8ProgressText");
+      const progressDetails = document.getElementById("m3u8ProgressDetails");
+      const progressStatus = document.getElementById("m3u8ProgressStatus");
+
+      progressFill.style.width = message.percentage + "%";
+      progressText.textContent = message.percentage + "%";
+      progressDetails.innerHTML = `
+        <span style="font-weight: 500; color: var(--primary);">${message.downloaded}/${message.total}</span> segments
+      `;
+      
+      const speed = calculateSpeed(message.downloaded);
+      progressStatus.textContent = `Speed: ${speed}`;
+    }
+  };
+
+  chrome.runtime.onMessage.addListener(progressListener);
+
+  console.log('[M3U8 UI] Sending download request to background');
+
+  // Send download request
+  chrome.runtime.sendMessage(
+    {
+      action: "downloadFile",
+      url: media.src,
+      filename: filename,
+      type: "video",
+    },
+    (response) => {
+      console.log('[M3U8 UI] Download response:', response);
+      
+      // Remove listener
+      chrome.runtime.onMessage.removeListener(progressListener);
+
+      if (response.success) {
+        console.log('[M3U8 UI] Download successful!');
+        showNotification("✅ M3U8 download started! Saving file...");
+        setTimeout(() => closeM3U8Dialog(), 3000);
+      } else {
+        console.error('[M3U8 UI] Download failed:', response.message);
+        showNotification("❌ Download failed: " + (response.message || "Unknown error"));
+        progressContainer.classList.add("hidden");
+        stepsContainer.classList.remove("hidden");
+        downloadBtn.disabled = false;
+        closeBtnAlt.disabled = false;
+      }
+    }
+  );
+}
+
+/**
+ * Calculate download speed (segments per second)
+ */
+function calculateSpeed(downloadedSegments) {
+  if (!window.m3u8StartTime) {
+    window.m3u8StartTime = Date.now();
+    return "measuring...";
+  }
+  const elapsed = (Date.now() - window.m3u8StartTime) / 1000;
+  if (elapsed < 1) return "measuring...";
+  const speed = (downloadedSegments / elapsed).toFixed(1);
+  return `${speed} seg/s`;
 }
 
 /**
@@ -344,38 +457,6 @@ function closeM3U8Dialog() {
     dialog.style.animation = "slideOut 0.3s ease";
     setTimeout(() => dialog.remove(), 300);
   }
-}
-
-/**
- * Copy M3U8 URL ke clipboard
- * @param {string} url - M3U8 URL
- */
-function copyM3U8Url(url) {
-  navigator.clipboard.writeText(url)
-    .then(() => {
-      showNotification("URL copied to clipboard!");
-    })
-    .catch(err => {
-      console.error("Failed to copy:", err);
-    });
-}
-
-
-/**
- * Open M3U8 converter dengan pre-filled URL
- * @param {string} url - M3U8 URL
- */
-function openM3U8Converter(url) {
-  const converterUrl = "https://www.m3u8-to-mp4-converter.com/";
-  const encodedUrl = encodeURIComponent(url);
-  
-  // Open converter in new tab
-  chrome.tabs.create({
-    url: converterUrl,
-  });
-
-  // Show notification
-  showNotification("✅ Converter opened! Paste the URL there.");
 }
 
 function truncate(str, length) {
@@ -401,7 +482,7 @@ function showEmptyState(show) {
 }
 
 function showNotification(message) {
-  console.log(message);
+  console.log('[NOTIFICATION]', message);
 
   const notificationEl = document.getElementById("notification");
   notificationEl.innerHTML = `

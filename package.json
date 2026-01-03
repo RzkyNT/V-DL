@@ -1,7 +1,7 @@
 {
-  "name": "Media Downloader Pro",
+  "name": "media-downloader-pro",
   "version": "1.0.0",
-  "description": "Download videos, images, dan media dari website dengan mudah",
+  "description": "Chrome Extension for downloading media with M3U8 support",
   "author": "RzkyNT",
   "license": "MIT",
   "scripts": {
@@ -13,6 +13,9 @@
     "downloader",
     "media",
     "video",
-    "image"
-  ]
+    "image",
+    "m3u8",
+    "hls"
+  ],
+  "devDependencies": {}
 }
